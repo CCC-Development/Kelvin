@@ -1,0 +1,43 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+run-data
+
+# local publish output (maven-publish in build.gradle)
+mcmodsrepo
+
+# Files from Forge MDK
+forge*changelog.txt
+.vscode/launch.json
+.vscode/tasks.json
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.hprof
+buildAndCopy.bat
+deobf-mods/cloth-config-11.1.136-forge-1.20.1.jar
+deobf-mods/create-1.20.1-6.0.8.jar
+deobf-mods/ponder-forge-1.20.1-1.0.91.jar
+dev-extra-mods/cloth-config-11.1.136-forge.jar
+dev-extra-mods/create-1.20.1-6.0.8.jar
+libs/mcgltf-1.20.1.jar

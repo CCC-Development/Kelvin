@@ -1,0 +1,24 @@
+{
+  "parent": "minecraft:adventure/root",
+  "criteria": {
+    "visit_crash_site": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [["visit_crash_site"]],
+  "display": {
+    "icon": {
+      "item": "minecraft:iron_ingot"
+    },
+    "title": {
+      "translate": "advancement.ccc_kelvin.who_shot_the_helicopter.title"
+    },
+    "description": {
+      "translate": "advancement.ccc_kelvin.who_shot_the_helicopter.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

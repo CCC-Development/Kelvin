@@ -1,0 +1,11 @@
+{
+  "advancement.ccc_kelvin.who_shot_the_helicopter.title": "Who shot the helicopter down?",
+  "advancement.ccc_kelvin.who_shot_the_helicopter.description": "Get the heli crash site in view.",
+  "entity.ccc_kelvin.apache_helicopter": "Combat Helicopter",
+  "item.ccc_kelvin.kelvin_summoner": "Kelvin Summoner",
+  "gui.ccc_kelvin.go_mine_button": "Go Mine",
+  "gui.ccc_kelvin.go_mine_pick_block": "Choose block to mine",
+  "gui.ccc_kelvin.go_mine_search": "Search",
+  "gui.ccc_kelvin.go_mine_no_match": "No blocks match.",
+  "gui.ccc_kelvin.go_mine_hud": "Kelvin mining: %s — Collected: %s"
+}

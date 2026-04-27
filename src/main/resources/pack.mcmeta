@@ -1,0 +1,6 @@
+{
+    "pack": {
+        "description": "${mod_name} resources (includes embedded vehicle assets)",
+        "pack_format": 15
+    }
+}

@@ -1,0 +1,24 @@
+{
+  "parent": "minecraft:adventure/root",
+  "criteria": {
+    "revived_kelvin": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [["revived_kelvin"]],
+  "display": {
+    "icon": {
+      "item": "minecraft:enchanted_golden_apple"
+    },
+    "title": {
+      "text": "Homie for Life"
+    },
+    "description": {
+      "text": "Revive Kelvin with an enchanted golden apple for the first time."
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  }
+}

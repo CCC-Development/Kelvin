@@ -425,4 +425,22 @@ public final class ApacheHelicopterEntity extends Entity {
     public boolean isPickable() {
         return false;
     }
+
+    /**
+     * GLTF draws well outside the logical {@link EntityType} box; aggressive mods (Embeddium entity culling, etc.) may
+     * skip rendering if the frustum cull box is tight.
+     */
+    @Override
+    public AABB getBoundingBoxForCulling() {
+        return super.getBoundingBoxForCulling().inflate(32.0);
+    }
+
+    /**
+     * Vanilla scales allowed render distance from bounding-box size; combined with render/culling mods this could drop
+     * the helicopter when viewed from far away. Always allow the client renderer to consider this entity in range.
+     */
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distanceSq) {
+        return true;
+    }
 }

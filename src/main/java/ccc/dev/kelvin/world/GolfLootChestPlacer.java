@@ -45,6 +45,9 @@ public final class GolfLootChestPlacer {
     /** Minimum horizontal distance between the two loot chests (blocks). */
     private static final int MIN_CHEST_SEPARATION = 28;
 
+    /** Ring iterations when the primary offset fails (raised for crowded / modded terrain). */
+    private static final int LOOT_RING_SEARCH_MAX = 16;
+
     private static int offsetFromSeed(long seed, long salt, int span) {
         long v = Long.rotateLeft(seed ^ salt, 17);
         return Math.floorMod((int) (v ^ (v >>> 32)), span);
@@ -67,6 +70,9 @@ public final class GolfLootChestPlacer {
             }
         }
         if (data.hasAllSites()) {
+            return;
+        }
+        if (data.getSites().isEmpty()) {
             return;
         }
         BlockPos avoid = data.getSites().get(0).getChestPos();
@@ -146,7 +152,7 @@ public final class GolfLootChestPlacer {
             return ringSearchFarFrom(
                     level, crash, data, gx, gz, avoidChest, (double) MIN_CHEST_SEPARATION * MIN_CHEST_SEPARATION);
         }
-        for (int ring = 1; ring <= 5; ring++) {
+        for (int ring = 1; ring <= LOOT_RING_SEARCH_MAX; ring++) {
             for (int oz = -ring; oz <= ring; oz++) {
                 for (int ox = -ring; ox <= ring; ox++) {
                     if (Math.max(Math.abs(ox), Math.abs(oz)) != ring) {
@@ -172,7 +178,7 @@ public final class GolfLootChestPlacer {
             double minDistSq) {
         double cx = avoidChest.getX() + 0.5;
         double cz = avoidChest.getZ() + 0.5;
-        for (int ring = 1; ring <= 5; ring++) {
+        for (int ring = 1; ring <= LOOT_RING_SEARCH_MAX; ring++) {
             for (int oz = -ring; oz <= ring; oz++) {
                 for (int ox = -ring; ox <= ring; ox++) {
                     if (Math.max(Math.abs(ox), Math.abs(oz)) != ring) {
@@ -213,9 +219,8 @@ public final class GolfLootChestPlacer {
         BlockPos beaconPos = beaconBaseCenter.above();
         BlockPos glassPos = beaconPos.above();
 
-        if (!level.canSeeSkyFromBelowWater(glassPos)) {
-            return false;
-        }
+        // Do not require canSeeSky — biome/worldgen mods with dense leaves or unusual skylight blocked all placements.
+        // Vanilla beacon beams still need sky above the glass when players clear foliage.
 
         List<BlockPos> decorations = new ArrayList<>();
         for (int ox = -1; ox <= 1; ox++) {

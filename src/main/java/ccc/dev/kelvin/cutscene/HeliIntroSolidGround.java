@@ -6,6 +6,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraftforge.common.Tags;
 
 /**
  * Intro helicopter must settle on real terrain (grass/dirt/stone/sand family), not on sugar cane, tall grass,
@@ -25,11 +26,17 @@ public final class HeliIntroSolidGround {
             if (isSupportBlock(st)) {
                 return y;
             }
-            if (!isPassThroughDecoration(st)) {
-                if (!st.isAir()) {
-                    break;
-                }
+            if (isPassThroughDecoration(st)) {
+                continue;
             }
+            if (st.isAir()) {
+                continue;
+            }
+            // Mod blocks often lack vanilla dirt/stone tags but still count as surface footing.
+            if (isGenericTerrainFooting(st)) {
+                return y;
+            }
+            break;
         }
         return startY;
     }
@@ -47,12 +54,17 @@ public final class HeliIntroSolidGround {
             return false;
         }
         if (state.is(Blocks.GRASS_BLOCK)
+                || state.is(Blocks.MOSS_BLOCK)
                 || state.is(Blocks.MYCELIUM)
                 || state.is(Blocks.DIRT_PATH)
                 || state.is(Blocks.FARMLAND)) {
             return true;
         }
-        if (state.is(BlockTags.DIRT) || state.is(BlockTags.SAND) || state.is(BlockTags.BASE_STONE_OVERWORLD)) {
+        if (state.is(BlockTags.DIRT)
+                || state.is(BlockTags.SAND)
+                || state.is(BlockTags.BASE_STONE_OVERWORLD)
+                || state.is(BlockTags.LOGS)
+                || state.is(BlockTags.PLANKS)) {
             return true;
         }
         if (state.is(Blocks.GRAVEL)
@@ -66,7 +78,34 @@ public final class HeliIntroSolidGround {
                 || state.is(Blocks.SOUL_SOIL)) {
             return true;
         }
-        return false;
+        if (state.is(Tags.Blocks.STONE)
+                || state.is(Tags.Blocks.COBBLESTONE)
+                || state.is(Tags.Blocks.SAND)
+                || state.is(Tags.Blocks.GRAVEL)
+                || state.is(Tags.Blocks.SANDSTONE)
+                || state.is(Tags.Blocks.END_STONES)
+                || state.is(Tags.Blocks.NETHERRACK)
+                || state.is(Tags.Blocks.OBSIDIAN)) {
+            return true;
+        }
+        return isGenericTerrainFooting(state);
+    }
+
+    /**
+     * Last-resort footing for mod blocks missing tags: solid collision, not fluid/leaves, not a typical replaceable
+     * plant layer (those should pass {@link #isPassThroughDecoration} instead).
+     */
+    private static boolean isGenericTerrainFooting(BlockState state) {
+        if (state.isAir()) {
+            return false;
+        }
+        if (!state.getFluidState().isEmpty()) {
+            return false;
+        }
+        if (state.is(BlockTags.LEAVES)) {
+            return false;
+        }
+        return state.blocksMotion() && !state.canBeReplaced();
     }
 
     public static boolean isPassThroughDecoration(BlockState state) {
@@ -94,6 +133,9 @@ public final class HeliIntroSolidGround {
                 || state.is(BlockTags.SMALL_FLOWERS)
                 || state.is(BlockTags.TALL_FLOWERS)
                 || state.is(BlockTags.CROPS)) {
+            return true;
+        }
+        if (state.is(BlockTags.SAPLINGS)) {
             return true;
         }
         if (state.is(Blocks.SNOW)) {

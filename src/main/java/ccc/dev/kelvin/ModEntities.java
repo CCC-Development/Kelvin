@@ -28,7 +28,8 @@ public final class ModEntities {
     public static final RegistryObject<EntityType<ApacheHelicopterEntity>> APACHE_HELICOPTER = ENTITY_TYPES.register("apache_helicopter",
             () -> EntityType.Builder.<ApacheHelicopterEntity>of(ApacheHelicopterEntity::new, MobCategory.MISC)
                     .sized(14.0F, 5.0F)
-                    .clientTrackingRange(24)
+                    // Chunks: keep the entity replicated on clients for huge view/sim distances (was 24 ≈ 384 blocks).
+                    .clientTrackingRange(128)
                     .updateInterval(1)
                     .build(ResourceLocation.fromNamespaceAndPath(CccKelvinMod.MOD_ID, "apache_helicopter").toString()));
 

@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
@@ -44,6 +46,21 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
     public ApacheHelicopterRenderer(EntityRendererProvider.Context context) {
         super(context);
         this.shadowRadius = 0.0F;
+    }
+
+    /**
+     * Skip camera-frustum rejection — third-party culling (Embeddium options, Entity Culling, etc.) often uses tight
+     * boxes or async tests that hide large glTF meshes at extreme distances. Distance is still gated by
+     * {@link ApacheHelicopterEntity#shouldRender(double, double, double)} (we relax that on the entity).
+     */
+    @Override
+    public boolean shouldRender(
+            ApacheHelicopterEntity entity,
+            Frustum frustum,
+            double camX,
+            double camY,
+            double camZ) {
+        return entity.shouldRender(camX, camY, camZ);
     }
 
     @Override
@@ -100,6 +117,8 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
             });
         }
 
+        ShaderInstance restorePipelineShader = RenderSystem.getShader();
+        try {
         int currentVao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
         int currentArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
         int currentElementArrayBuffer = GL11.glGetInteger(GL15.GL_ELEMENT_ARRAY_BUFFER_BINDING);
@@ -169,6 +188,12 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, currentArrayBuffer);
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer);
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        } finally {
+            RenderedGltfModel.clearTransientPipelineState();
+            if (restorePipelineShader != null) {
+                RenderSystem.setShader(() -> restorePipelineShader);
+            }
+        }
     }
 
     /**
@@ -231,5 +256,6 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
         GL20.glUseProgram(currentProgram);
 
         RenderedGltfModel.NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear();
+        RenderedGltfModel.clearTransientPipelineState();
     }
 }

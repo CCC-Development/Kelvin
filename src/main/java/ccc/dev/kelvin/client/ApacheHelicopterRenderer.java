@@ -13,6 +13,7 @@ import com.modularmods.mcgltf.RenderedGltfScene;
 import com.modularmods.mcgltf.animation.GltfAnimationCreator;
 import com.modularmods.mcgltf.animation.InterpolatedChannel;
 import de.javagl.jgltf.model.AnimationModel;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.renderer.GameRenderer;
@@ -33,6 +34,46 @@ import org.lwjgl.opengl.GL40;
 import org.lwjgl.opengl.GL43;
 
 public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicopterEntity> implements IGltfModelReceiver {
+
+    /**
+     * CurseForge {@code mcgltf-1.20.1.jar} predates {@link RenderedGltfModel#clearTransientPipelineState()}; calling
+     * it directly causes {@link NoSuchMethodError} at render time. Prefer reflective invoke when present, else clear
+     * the same static fields MCglTF uses for vanilla draw state.
+     */
+    private static final Method MCGLTF_CLEAR_TRANSIENT_PIPELINE;
+
+    static {
+        Method m = null;
+        try {
+            m = RenderedGltfModel.class.getMethod("clearTransientPipelineState");
+        } catch (NoSuchMethodException ignored) {
+        }
+        MCGLTF_CLEAR_TRANSIENT_PIPELINE = m;
+    }
+
+    private static void clearMcGltfTransientPipelineStateCompat() {
+        if (MCGLTF_CLEAR_TRANSIENT_PIPELINE != null) {
+            try {
+                MCGLTF_CLEAR_TRANSIENT_PIPELINE.invoke(null);
+            } catch (ReflectiveOperationException ignored) {
+            }
+            return;
+        }
+        clearRenderedGltfModelStaticField("CURRENT_SHADER_INSTANCE");
+        clearRenderedGltfModelStaticField("LIGHT0_DIRECTION");
+        clearRenderedGltfModelStaticField("LIGHT1_DIRECTION");
+        clearRenderedGltfModelStaticField("CURRENT_POSE");
+        clearRenderedGltfModelStaticField("CURRENT_NORMAL");
+    }
+
+    private static void clearRenderedGltfModelStaticField(String name) {
+        try {
+            var f = RenderedGltfModel.class.getDeclaredField(name);
+            f.setAccessible(true);
+            f.set(null, null);
+        } catch (ReflectiveOperationException ignored) {
+        }
+    }
 
     private static final ResourceLocation MODEL =
             ResourceLocation.fromNamespaceAndPath("ccc_kelvin", "models/entity/apache_helicopter.gltf");
@@ -189,7 +230,7 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
         GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, currentElementArrayBuffer);
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         } finally {
-            RenderedGltfModel.clearTransientPipelineState();
+            clearMcGltfTransientPipelineStateCompat();
             if (restorePipelineShader != null) {
                 RenderSystem.setShader(() -> restorePipelineShader);
             }
@@ -256,6 +297,6 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
         GL20.glUseProgram(currentProgram);
 
         RenderedGltfModel.NODE_GLOBAL_TRANSFORMATION_LOOKUP_CACHE.clear();
-        RenderedGltfModel.clearTransientPipelineState();
+        clearMcGltfTransientPipelineStateCompat();
     }
 }

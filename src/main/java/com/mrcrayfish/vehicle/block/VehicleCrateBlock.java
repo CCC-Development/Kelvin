@@ -59,7 +59,8 @@ public class VehicleCrateBlock extends RotatedEntityObjectBlock
 {
     public static final List<ResourceLocation> REGISTERED_CRATES = new ArrayList<>();
     private static final ResourceLocation CRATE_VEHICLE_ID = ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "golf_cart");
-    private static final VoxelShape PANEL = box(0, 0, 0, 16, 2, 16);
+    // Avoid Block.box(...): Connector-remapped runtimes may omit that named helper.
+    private static final VoxelShape PANEL = Shapes.box(0.0, 0.0, 0.0, 1.0, 2.0 / 16.0, 1.0);
 
     public VehicleCrateBlock()
     {

@@ -68,6 +68,7 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    mavenCentral()
     maven {
         url = 'https://www.cursemaven.com'
         content {
@@ -85,12 +86,11 @@ dependencies {
     implementation fg.deobf("blank:mcgltf:1.20.1")
 
     implementation fg.deobf("curse.maven:framework-${project.framework_project}:${project.framework_file}")
-    implementation fg.deobf("curse.maven:posture-${project.posture_project}:${project.posture_file}")
+    // Keep Posture only for compiling unused embedded vehicle handlers. Do not ship/load it: its global player model
+    // hooks can conflict with Better Combat first-person animations, and Kelvin no longer registers those handlers.
+    compileOnly fg.deobf("curse.maven:posture-${project.posture_project}:${project.posture_file}")
     jarJar(group: 'curse.maven', name: "framework-${project.framework_project}", version: "${project.framework_file}") {
         jarJar.ranged(it, '[0.7.10,)')
-    }
-    jarJar(group: 'curse.maven', name: "posture-${project.posture_project}", version: "${project.posture_file}") {
-        jarJar.ranged(it, '[1.0.0,)')
     }
     implementation fg.deobf("curse.maven:controllable-${project.controllable_project}:${project.controllable_file}")
 
@@ -140,6 +140,7 @@ tasks.named('jar', Jar).configure {
 
 tasks.named('jarJar', Jar).configure {
     archiveClassifier.set('')
+    finalizedBy 'reobfJarJar'
 }
 
 publishing {

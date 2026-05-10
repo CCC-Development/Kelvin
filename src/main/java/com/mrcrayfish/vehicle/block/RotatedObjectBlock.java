@@ -8,9 +8,10 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -20,7 +21,14 @@ import javax.annotation.Nullable;
 @SuppressWarnings("deprecation")
 public abstract class RotatedObjectBlock extends ObjectBlock
 {
-    public static final DirectionProperty DIRECTION = BlockStateProperties.HORIZONTAL_FACING;
+    /**
+     * Avoid {@link net.minecraft.world.level.block.state.properties.BlockStateProperties#HORIZONTAL_FACING} (field
+     * missing) and every {@code DirectionProperty.create(...)} overload, since Connector-remapped runtimes can omit
+     * those factory methods. The protected constructor is stable and still restricts this property to NESW.
+     */
+    public static final DirectionProperty DIRECTION =
+            new DirectionProperty(
+                    "facing", List.of(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)) {};
 
     public RotatedObjectBlock(Properties properties)
     {

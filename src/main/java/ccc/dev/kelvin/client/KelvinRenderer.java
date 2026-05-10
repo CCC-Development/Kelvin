@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
@@ -24,11 +23,11 @@ public final class KelvinRenderer extends HumanoidMobRenderer<KelvinEntity, Play
             ResourceLocation.fromNamespaceAndPath(CccKelvinMod.MOD_ID, "textures/entity/kelvin.png");
 
     public KelvinRenderer(EntityRendererProvider.Context context) {
-        super(context, new KelvinPlayerModel(context.bakeLayer(ModelLayers.PLAYER), false), 0.5F);
+        super(context, new KelvinPlayerModel(context.bakeLayer(KelvinModelLayers.KELVIN), false), 0.5F);
         this.addLayer(new HumanoidArmorLayer<>(
                 this,
-                new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)),
-                new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR)),
+                new HumanoidModel<>(context.bakeLayer(KelvinModelLayers.KELVIN_INNER_ARMOR)),
+                new HumanoidModel<>(context.bakeLayer(KelvinModelLayers.KELVIN_OUTER_ARMOR)),
                 context.getModelManager()));
     }
 

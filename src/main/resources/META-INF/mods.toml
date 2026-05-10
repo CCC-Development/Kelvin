@@ -39,13 +39,6 @@ versionRange="[0.7.10,)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.${mod_id}]]
-modId="posture"
-mandatory=true
-versionRange="[1.0.0,)"
-ordering="NONE"
-side="CLIENT"
-
 # Controller support (optional at runtime; vehicle client references it when present).
 [[dependencies.${mod_id}]]
 modId="controllable"

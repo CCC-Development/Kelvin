@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -30,9 +29,12 @@ import javax.annotation.Nullable;
 @SuppressWarnings("deprecation")
 public class JackBlock extends RotatedObjectBlock implements EntityBlock
 {
-    public static final BooleanProperty ENABLED = BlockStateProperties.ENABLED;
+    /** Avoid {@code BlockStateProperties.ENABLED}; Connector-remapped runtimes may omit static vanilla fields. */
+    public static final BooleanProperty ENABLED = new BooleanProperty("enabled") {};
 
-    private static final VoxelShape SHAPE = box(1, 0, 1, 15, 10, 15);
+    // Avoid Block.box(...): Connector-remapped runtimes may omit that named helper.
+    private static final VoxelShape SHAPE =
+            Shapes.box(1.0 / 16.0, 0.0, 1.0 / 16.0, 15.0 / 16.0, 10.0 / 16.0, 15.0 / 16.0);
 
     public JackBlock() {
         super(Properties.of()

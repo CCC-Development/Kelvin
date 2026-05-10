@@ -6,7 +6,6 @@ import com.mrcrayfish.vehicle.client.model.ComponentManager;
 import com.mrcrayfish.vehicle.client.particle.DustParticle;
 import com.mrcrayfish.vehicle.client.particle.TyreSmokeParticle;
 import com.mrcrayfish.vehicle.client.raytrace.EntityRayTracer;
-import com.mrcrayfish.vehicle.client.render.layer.LayerHeldVehicle;
 import com.mrcrayfish.vehicle.client.render.tileentity.VehicleCrateRenderer;
 import com.mrcrayfish.vehicle.client.render.vehicle.GolfCartRenderer;
 import com.mrcrayfish.vehicle.client.screen.EditVehicleScreen;
@@ -20,7 +19,6 @@ import com.mrcrayfish.vehicle.item.PartItem;
 import com.mrcrayfish.vehicle.util.FluidUtils;
 import com.mrcrayfish.vehicle.util.VehicleUtil;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.item.Item;
@@ -62,12 +60,8 @@ public class ClientHandler
 
         MinecraftForge.EVENT_BUS.register(EntityRayTracer.instance());
         MinecraftForge.EVENT_BUS.register(CosmeticCache.instance());
-        MinecraftForge.EVENT_BUS.register(CameraHandler.instance());
-        MinecraftForge.EVENT_BUS.register(new FuelingHandler());
-        MinecraftForge.EVENT_BUS.register(new HeldVehicleHandler());
         MinecraftForge.EVENT_BUS.register(new InputHandler());
         MinecraftForge.EVENT_BUS.register(new OverlayHandler());
-        MinecraftForge.EVENT_BUS.register(new PlayerModelHandler());
         MinecraftForge.EVENT_BUS.register(new ClientEvents());
 
         setupCustomBlockModels();
@@ -99,11 +93,9 @@ public class ClientHandler
     @SubscribeEvent
     public static void onAddLayers(EntityRenderersEvent.AddLayers event)
     {
-        for (String skinName : event.getSkins())
-        {
-            PlayerRenderer renderer = event.getSkin(skinName);
-            renderer.addLayer(new LayerHeldVehicle<>(renderer));
-        }
+        // Do not add player render layers from the embedded vehicle slice. These layers and related posture handlers
+        // can run on the local player's first-person model in animation-heavy packs (e.g. Better Combat), causing
+        // third-person arm transforms to leak into first-person swings.
     }
 
     @SubscribeEvent

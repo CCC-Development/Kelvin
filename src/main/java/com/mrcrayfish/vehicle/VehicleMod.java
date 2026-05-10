@@ -18,7 +18,6 @@ import com.mrcrayfish.vehicle.entity.properties.VehicleProperties;
 import com.mrcrayfish.vehicle.init.*;
 import com.mrcrayfish.vehicle.network.PacketHandler;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -104,8 +103,16 @@ public class VehicleMod
         generator.addProvider(true, new BlockTagGen(event.getGenerator().getPackOutput(), provider, Reference.MOD_ID, existingFileHelper));
     }
 
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB,
-            Reference.MOD_ID);
+    /**
+     * Register with {@link DeferredRegister#create(ResourceLocation, String)} instead of
+     * {@code ResourceKey.createRegistryKey}: Connector / hybrid clients can remap {@link ResourceKey} such that
+     * {@code createRegistryKey(ResourceLocation)} is missing at runtime ({@link NoSuchMethodError}).
+     */
+    private static final ResourceLocation CREATIVE_MODE_TAB_REGISTRY_NAME =
+            ResourceLocation.fromNamespaceAndPath("minecraft", "creative_mode_tab");
+
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
+            DeferredRegister.create(CREATIVE_MODE_TAB_REGISTRY_NAME, Reference.MOD_ID);
 
     public static RegistryObject<CreativeModeTab> VEHICLE_TAB = CREATIVE_MODE_TABS.register("vehiclemodtab", () ->
             CreativeModeTab.builder().icon(() -> new ItemStack(ModItems.WRENCH.get()))

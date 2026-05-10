@@ -5,13 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8.5",
   "refmap": "ccc_kelvin.refmap.json",
-  "mixins": [
-    "server.EntityMixin"
-  ],
-  "client": [
-    "client.GameRendererMixin",
-    "client.ShadersRenderMixin"
-  ],
+  "mixins": [],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

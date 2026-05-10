@@ -3,6 +3,7 @@ package ccc.dev.kelvin.event;
 import ccc.dev.kelvin.CccKelvinMod;
 import ccc.dev.kelvin.KelvinIntroLandedWorldData;
 import ccc.dev.kelvin.ModEntities;
+import ccc.dev.kelvin.config.KelvinModConfig;
 import ccc.dev.kelvin.cutscene.HeliCrashSiteStructurePlacer;
 import ccc.dev.kelvin.cutscene.HeliIntroCutsceneIds;
 import ccc.dev.kelvin.cutscene.HeliIntroWorldCrashSite;
@@ -104,7 +105,34 @@ public final class HeliIntroCutsceneServerEvents {
         if (SESSIONS.containsKey(sp.getUUID())) {
             return;
         }
+        if (KelvinModConfig.disableCutscene()) {
+            grantFirstJoinIntroWithoutCutscene(sp);
+            return;
+        }
         startCutsceneSession(sp, true);
+    }
+
+    /**
+     * First-time join with {@link KelvinModConfig#DISABLE_CUTSCENE}: skip helicopter + client cinematic; still place the
+     * crash NBT / chests, spawn Kelvin when appropriate, and mark the intro done.
+     */
+    private static void grantFirstJoinIntroWithoutCutscene(ServerPlayer sp) {
+        MinecraftServer server = sp.getServer();
+        if (server == null) {
+            return;
+        }
+        ServerLevel overworld = server.overworld();
+        if (HeliCrashSiteStructurePlacer.tryPlaceOnFirstImpact(server, overworld)) {
+            CrashSiteAdvancementEvents.onPlaced(overworld);
+        }
+        sp.getPersistentData().putBoolean(HeliIntroCutsceneIds.PLAYER_SEEN_TAG, true);
+        if (KelvinIntroLandedWorldData.get(server).hasKelvinLanded()) {
+            sp.sendSystemMessage(
+                    Component.literal("Kelvin has already landed, you need to find him.")
+                            .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFF8C00))));
+        } else {
+            spawnKelvinNearIntroHelicopter(sp, overworld, server);
+        }
     }
 
     private static void startCutsceneSession(ServerPlayer sp, boolean markIntroDoneWhenFinished) {

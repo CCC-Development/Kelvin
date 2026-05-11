@@ -159,6 +159,7 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
         }
 
         ShaderInstance restorePipelineShader = RenderSystem.getShader();
+        int[] snapshotShaderTextures = snapshotRenderSystemShaderTextures();
         try {
         int currentVao = GL11.glGetInteger(GL30.GL_VERTEX_ARRAY_BINDING);
         int currentArrayBuffer = GL11.glGetInteger(GL15.GL_ARRAY_BUFFER_BINDING);
@@ -187,31 +188,45 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
         GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, packedLight & 65535, packedLight >> 16 & 65535);
         GL20.glVertexAttrib2f(RenderedGltfModel.vaUV1, 0.0F, 0.0F);
 
-        if (MCglTF.getInstance().isShaderModActive()) {
-            this.renderedScene.renderForShaderMod();
-        } else {
+        // MCglTF (especially renderForShaderMod) rebinds texture units 0/1/3 internally but not always unit 2
+        // (lightmap). If those bindings leak after the helicopter draw, vanilla entity + skin layered renders
+        // sample the wrong textures on the next frames.
+        GL13.glActiveTexture(GL13.GL_TEXTURE3);
+        int savedTex3 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GL13.glActiveTexture(GL13.GL_TEXTURE2);
+        int savedTex2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GL13.glActiveTexture(GL13.GL_TEXTURE1);
+        int savedTex1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        int savedTex0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
+        try {
+            if (MCglTF.getInstance().isShaderModActive()) {
+                this.renderedScene.renderForShaderMod();
+            } else {
+                GL13.glActiveTexture(GL13.GL_TEXTURE2);
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().getLightTexture().getId());
+
+                GL13.glActiveTexture(GL13.GL_TEXTURE1);
+                GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+
+                GL13.glActiveTexture(GL13.GL_TEXTURE0);
+
+                renderVanillaSceneWithBaseTextureUnit0(this.renderedScene);
+            }
+        } finally {
+            GL13.glActiveTexture(GL13.GL_TEXTURE3);
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, savedTex3);
             GL13.glActiveTexture(GL13.GL_TEXTURE2);
-            int tex2 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, MCglTF.getInstance().getLightTexture().getId());
-
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, savedTex2);
             GL13.glActiveTexture(GL13.GL_TEXTURE1);
-            int tex1 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
-
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, savedTex1);
             GL13.glActiveTexture(GL13.GL_TEXTURE0);
-            int tex0 = GL11.glGetInteger(GL11.GL_TEXTURE_BINDING_2D);
-
-            renderVanillaSceneWithBaseTextureUnit0(this.renderedScene);
-
-            GL13.glActiveTexture(GL13.GL_TEXTURE2);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex2);
-            GL13.glActiveTexture(GL13.GL_TEXTURE1);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex1);
-            GL13.glActiveTexture(GL13.GL_TEXTURE0);
-            GL11.glBindTexture(GL11.GL_TEXTURE_2D, tex0);
+            GL11.glBindTexture(GL11.GL_TEXTURE_2D, savedTex0);
+            restoreRenderSystemShaderTextures(snapshotShaderTextures);
         }
 
         GL30.glVertexAttribI2i(RenderedGltfModel.vaUV2, 0, 0);
+        GL20.glVertexAttrib2f(RenderedGltfModel.vaUV1, 0.0F, 0.0F);
 
         if (!depthTest) {
             GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -233,7 +248,30 @@ public final class ApacheHelicopterRenderer extends EntityRenderer<ApacheHelicop
             clearMcGltfTransientPipelineStateCompat();
             if (restorePipelineShader != null) {
                 RenderSystem.setShader(() -> restorePipelineShader);
+                restorePipelineShader.apply();
             }
+        }
+    }
+
+    /**
+     * MCglTF binds texture samplers with raw GL calls. Vanilla also mirrors bound IDs in
+     * {@link RenderSystem}'s shader-texture table; if that table is stale, the next {@link ShaderInstance#apply()}
+     * can rebind the wrong textures (lightmap on slot 2 is the usual casualty), breaking translucent passes such as
+     * player skin outer / overlay layers.
+     */
+    private static final int RENDER_SYSTEM_SHADER_TEXTURE_SLOTS = 16;
+
+    private static int[] snapshotRenderSystemShaderTextures() {
+        int[] saved = new int[RENDER_SYSTEM_SHADER_TEXTURE_SLOTS];
+        for (int i = 0; i < RENDER_SYSTEM_SHADER_TEXTURE_SLOTS; i++) {
+            saved[i] = RenderSystem.getShaderTexture(i);
+        }
+        return saved;
+    }
+
+    private static void restoreRenderSystemShaderTextures(int[] saved) {
+        for (int i = 0; i < saved.length; i++) {
+            RenderSystem._setShaderTexture(i, saved[i]);
         }
     }
 

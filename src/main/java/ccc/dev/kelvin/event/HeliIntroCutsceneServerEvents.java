@@ -162,6 +162,11 @@ public final class HeliIntroCutsceneServerEvents {
         SESSIONS.put(
                 sp.getUUID(),
                 new Session(heli.getId(), HeliIntroCutsceneIds.DURATION_TICKS, markIntroDoneWhenFinished));
+        // Mark intro "done" as soon as we commit to this session so reconnecting mid-flight does not re-run the whole
+        // cinematic on every login (PLAYER_SEEN_TAG previously only flipped after the session tick exhausted).
+        if (markIntroDoneWhenFinished) {
+            sp.getPersistentData().putBoolean(HeliIntroCutsceneIds.PLAYER_SEEN_TAG, true);
+        }
         // One tick later: client receives cutscene packet; timeline + server countdown stay gated until ack (see
         // HeliIntroCutsceneAckPacket) so letterbox does not run ahead of loaded chunks.
         level.getServer()

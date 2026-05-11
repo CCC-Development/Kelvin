@@ -374,7 +374,13 @@ public final class HeliIntroCutsceneClient {
      */
     public static void clientTickStart() {
         Minecraft mc = Minecraft.getInstance();
-        if (!active || mc.level == null || helicopterEntityId < 0) {
+        if (mc.level == null) {
+            if (active) {
+                clear();
+            }
+            return;
+        }
+        if (!active || helicopterEntityId < 0) {
             return;
         }
         if (!cutsceneTimelineRunning) {
@@ -408,15 +414,17 @@ public final class HeliIntroCutsceneClient {
         if (!active) {
             return;
         }
-        if (!cutsceneTimelineRunning && mc.level != null) {
+        if (mc.level == null) {
+            clear();
+            return;
+        }
+        if (!cutsceneTimelineRunning) {
             cutsceneReadyStallTicks++;
             if (cutsceneReadyStallTicks >= HeliIntroCutsceneIds.INTRO_CLIENT_ACK_TIMEOUT_TICKS) {
                 beginCutsceneTimelineNow();
             }
         }
-        if (mc.level != null) {
-            applyImpactIfHeliGone();
-        }
+        applyImpactIfHeliGone();
         if (cutsceneTimelineRunning) {
             // Hard deadline: if the countdown is almost over and impact was never signalled (packet
             // lost / entity never tracked), force-register it so shake + bar-drop always happen.

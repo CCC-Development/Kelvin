@@ -11,6 +11,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.client.event.RenderArmEvent;
 import net.minecraftforge.client.event.RenderGuiEvent;
@@ -76,6 +77,12 @@ public final class HeliIntroCutsceneForgeClientEvents {
         } else if (event.phase == TickEvent.Phase.END) {
             HeliIntroCutsceneClient.clientTickEnd();
         }
+    }
+
+    /** Leaving the server/world must drop cutscene state or RenderArm/RenderHand stay cancelled forever. */
+    @SubscribeEvent
+    public static void onClientLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        HeliIntroCutsceneClient.clear();
     }
 
     @SubscribeEvent

@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
@@ -110,5 +111,29 @@ public final class KelvinRenderer extends HumanoidMobRenderer<KelvinEntity, Play
         int gi = Mth.clamp((int) (g + 0.5f), 0, 255);
         int bi = Mth.clamp((int) (b + 0.5f), 0, 255);
         return 0xFF000000 | (ri << 16) | (gi << 8) | bi;
+    }
+
+    /**
+     * {@link net.minecraft.client.renderer.entity.player.PlayerRenderer} calls {@code setModelProperties} so
+     * hat/jacket/sleeves/pants follow skin customization. Kelvin is a mob, so that never runs and overlay parts can
+     * stay hidden if something toggles {@link PlayerModel#setAllVisible}. Match vanilla's default-on overlays.
+     */
+    @Override
+    public void render(
+            KelvinEntity entity,
+            float entityYaw,
+            float partialTick,
+            PoseStack poseStack,
+            MultiBufferSource bufferSource,
+            int packedLight) {
+        PlayerModel<KelvinEntity> playerModel = this.getModel();
+        playerModel.setAllVisible(true);
+        playerModel.hat.visible = true;
+        playerModel.jacket.visible = true;
+        playerModel.leftSleeve.visible = true;
+        playerModel.rightSleeve.visible = true;
+        playerModel.leftPants.visible = true;
+        playerModel.rightPants.visible = true;
+        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
 }

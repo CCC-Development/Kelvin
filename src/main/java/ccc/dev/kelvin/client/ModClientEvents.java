@@ -9,6 +9,7 @@ import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.LayerDefinitions;
 import net.minecraft.client.model.geom.builders.CubeDeformation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -46,6 +47,16 @@ public final class ModClientEvents {
             MCglTF.getInstance().addGltfModelReceiver(renderer);
             return renderer;
         });
+    }
+
+    @SubscribeEvent
+    public static void addPlayerLayers(EntityRenderersEvent.AddLayers event) {
+        for (String skin : event.getSkins()) {
+            PlayerRenderer renderer = event.getSkin(skin);
+            if (renderer != null) {
+                renderer.addLayer(new LocalPlayerSkinLayerVisibilityBridge(renderer));
+            }
+        }
     }
 
     @SubscribeEvent
